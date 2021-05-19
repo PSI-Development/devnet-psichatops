@@ -61,28 +61,41 @@ class DNACManager():
             msg = "DNAC cannot be access currently"
             return(msg)
 
-    def cmd_run_show(self, commands = "", deviceUuids = ""):
-        cmd_resp = []
-        try:
-            payload = { 
-                'commands': [commands], #COMMAND harus dalam bentuk LIST/ARRAY
-                'deviceUuids':[deviceUuids] #UUID harus dalam bentuk LIST/ARRAY
-                }
-            print("Payload: {}".format(payload))
-            resp = self.__dnac_api_post(api="network-device-poller/cli/read-request", payload = payload )
-            status = resp.status_code
-            print (status)
-            response_json = resp.json()
-            task_url = response_json['response']['url']
-            task = self.__wait_task(task_url)
-            print (task)
-            fileId = json.loads(task['response']['progress'])
-            print(commands)
-            filename, cmd_output = self.__process_file(fileId['fileId'],commands=commands)
-            #self.__send_cmd_slack(filename[0],  channel_id)
-            return filename
-        except ValueError:
-            return f'DNAC might not be accessible currently'
+    # def cmd_run_show(self, commands = "", deviceUuids = ""):
+    #     cmd_resp = []
+    #     try:
+    #         payload = { 
+    #             'commands': [commands], #COMMAND harus dalam bentuk LIST/ARRAY
+    #             'deviceUuids':[deviceUuids] #UUID harus dalam bentuk LIST/ARRAY
+    #             }
+    #         print("Payload: {}".format(payload))
+    #         resp = self.__dnac_api_post(api="network-device-poller/cli/read-request", payload = payload )
+    #         status = resp.status_code
+    #         print (status)
+    #         response_json = resp.json()
+    #         task_url = response_json['response']['url']
+    #         task = self.__wait_task(task_url)
+    #         print (task)
+    #         fileId = json.loads(task['response']['progress'])
+    #         print(commands)
+    #         filename, cmd_output = self.__process_file(fileId['fileId'],commands=commands)
+    #         #self.__send_cmd_slack(filename[0],  channel_id)
+    #         return filename
+    #     except ValueError:
+    #         return f'DNAC might not be accessible currently'
+    
+    def cmd_run(self,device,command):
+        run_cmd = self.dnac.command_runner.run_read_only_commands_on_devices(commands=[command],deviceUuids=[device])
+        task_info = self.dnac.task.get_task_by_id(run_cmd.response.taskId)
+        task_progress = task_info.response.progress
+        while task_progress == 'CLI Runner request creation':
+            task_progress = self.dnac.task.get_task_by_id(run_cmd.response.taskId).response.progress
+        task_progress= json.loads(task_progress)
+        fileid = task_progress['fileId']
+        current_directory= pathlib.Path().absolute()
+        filename, cmd_output = self.__processFile(fileid=fileid,commands=commands)
+        return filename
+        #cmd_output = self.dnac.file.download_a_file_by_fileid(fileid,dirpath=current_directory, save_file= True)
 
     def __dnac_api_post(self, api='', params='', payload = ''):
         #url = self.dnac_url + "/api/" + self.dnac_version + "/" + api

@@ -99,7 +99,7 @@ def handle_cards(api, incoming_msg):
     rid = m.get('roomId')
     selected_device = m['inputs'].get('device_select')
     selected_command = m['inputs'].get('command_select')
-    filename = dnac.cmd_run_show(selected_command, selected_device)
+    filename = dnac.cmd_run(selected_device, selected_command)
     if filename is not None:
         if send_message_with_local_file(rid, filename):
             return f'Please refer result in this attached file'
