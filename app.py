@@ -7,15 +7,16 @@ import sys
 import json
 from dnac_manager import DNACManager
 from cards_factory import generate_cmd_runner_card
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 # Initialized managed entitities (e.g. DNAC, APIC, IOS, SolarWind)
-#dnac = DNACManager()
+dnac = DNACManager()
 
 # Retrieve required details from environment variables
-bot_email = os.getenv("TEAMS_BOT_EMAIL")
-teams_token = os.getenv("TEAMS_BOT_TOKEN")
-bot_url = os.getenv("TEAMS_BOT_URL")
-bot_app_name = os.getenv("TEAMS_BOT_APP_NAME")
+bot_email = os.getenv("TEAMS_BOT_EMAIL_2")
+teams_token = os.getenv("TEAMS_BOT_TOKEN_2")
+bot_url = os.getenv("TEAMS_BOT_URL_2")
+bot_app_name = os.getenv("TEAMS_BOT_APP_NAME_2")
 
 # If any of the bot environment variables are missing, terminate the app
 if not bot_email or not teams_token or not bot_url or not bot_app_name:
@@ -45,7 +46,7 @@ bot = TeamsBot(
     # approved_users=approved_users,
     webhook_resource_event=[
         {"resource": "messages", "event": "created"},
-        #{"resource": "attachmentActions", "event": "created"},
+        {"resource": "attachmentActions", "event": "created"},
     ],
 )
 
@@ -95,7 +96,17 @@ def cmd_run(incoming_msg):
 def handle_cards(api, incoming_msg):
     m = get_attachment_actions(incoming_msg["data"]["id"])
     print(m)
-    return m["inputs"]
+    rid = m.get('roomId')
+    selected_device = m['inputs'].get('device_select')
+    selected_command = m['inputs'].get('command_select')
+    filename = dnac.cmd_run_show(selected_command, selected_device)
+    if filename is not None:
+        if send_message_with_local_file(rid, filename):
+            return f'Please refer result in this attached file'
+        else:
+            return f'something went wrong while posting result'
+    else:
+        return f'something when wrong while accessing dnac/processing result'
 
 def get_attachment_actions(attachmentid):
     headers = {
@@ -115,11 +126,28 @@ def create_message_with_attachment(rid, msgtxt, attachment):
         "content-type": "application/json; charset=utf-8",
         "authorization": "Bearer " + teams_token,
     }
-
+    card = {
+        "contentType": "application/vnd.microsoft.card.adaptive",
+        "content": attachment
+    }	
     url = "https://api.ciscospark.com/v1/messages"
-    data = {"roomId": rid, "attachments": [attachment], "markdown": msgtxt}
+    data = {"roomId": rid, "attachments": [card], "markdown": msgtxt}
     response = requests.post(url, json=data, headers=headers)
     return response.json()
+
+def send_message_with_local_file(rid, filename, fileformat='text/plain'):
+    m = MultipartEncoder({'roomId': rid,
+                      'text': 'result attached',
+                      'files': (filename, open('filename', 'rb'),
+                      fileformat)})
+
+    r = requests.post('https://webexapis.com/v1/messages', data=m,
+                    headers={'Authorization': 'Bearer' + teams_token,
+                    'Content-Type': m.content_type})
+    if r.ok:
+        return True
+    else: 
+        return False
 
 # Set the bot greeting.
 bot.set_greeting(greeting)
@@ -138,4 +166,4 @@ bot.remove_command("/echo")
 
 if __name__ == "__main__":
     # Run Bot
-    bot.run(host="127.0.0.1", port=5000)
+    bot.run(host="0.0.0.0", port=5001)

@@ -1,8 +1,11 @@
 import json
 
 # static / predefine device and command list
-device_list = ["device01", "device02", "device03"]
-cmd_list = ["show env all", "show run"]
+device_list = ["border-1.packet-systems.web.id", "edge-1.packet-systems.web.id", "fusion-1.packet-systems.web.id"]
+device_uuid_dict = {"border-1.packet-systems.web.id":"26015FFE-E3D2-4E88-B1DD-EBFB8845045C",
+                    "edge-1.packet-systems.web.id":"85DBE66D-2E62-46F3-B5FA-74F36CB64F8E",
+                    "fusion-1.packet-systems.web.id":"E96D2871-F3C8-42EA-A77B-4015F8A2348F"}
+cmd_list = ["show env", "show int desc", "show run"]
 
 # template based on ms card format for selecting device and command
 cmd_runner_template = {
@@ -93,8 +96,8 @@ cmd_runner_template = {
 # generate card with predefined device and cmd list based on card template
 def generate_cmd_runner_card(template=cmd_runner_template, device_list=device_list, cmd_list=cmd_list):
     card = template
-    device_select = [{"title": device, "value": device.replace(" ", "_")} for device in device_list]
-    cmd_select = [{"title": cmd, "value": cmd.replace(" ", "_")} for cmd in cmd_list]
+    device_select = [{"title": device, "value": device_uuid_dict.get(device)} for device in device_list]
+    cmd_select = [{"title": cmd, "value": cmd} for cmd in cmd_list]
     card_body = card.get("body")
     for item in card_body:
         id = item.get("id")

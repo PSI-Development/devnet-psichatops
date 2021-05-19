@@ -19,18 +19,18 @@ from datetime import datetime , timedelta
 class DNACManager():
 
     def __init__(self):
-        self.dnac = self._connect()
+        self.dnac = self.__connect()
         if self.dnac is not None:
             print('DNAC Initialization Successful')
         else:
             print('DNAC Initialization fails')
 
-    def _connect(self):
-        dnac_uname = os.environ["DNAC_USERNAME"]
-        dnac_pass =os.environ["DNAC_PASSWORD"]
-        dnac_url = os.environ["DNAC_CONN"]
-        print(dnac_uname,dnac_pass,dnac_url)
-        dnac = api.DNACenterAPI(base_url=dnac_url, username=dnac_uname, password=dnac_pass, verify=False)
+    def __connect(self):
+        self.dnac_username = os.environ["DNAC_USERNAME"]
+        self.dnac_password =os.environ["DNAC_PASSWORD"]
+        self.dnac_url = os.environ["DNAC_CONN"]
+        self.dnac_version = "v1"
+        dnac = api.DNACenterAPI(base_url=self.dnac_url, username=self.dnac_username, password=self.dnac_password, verify=False)
         if dnac is not None:
             return dnac
         else:
@@ -60,6 +60,86 @@ class DNACManager():
             print(e)
             msg = "DNAC cannot be access currently"
             return(msg)
+
+    def cmd_run_show(self, commands = "", deviceUuids = ""):
+        cmd_resp = []
+        try:
+            payload = { 
+                'commands': [commands], #COMMAND harus dalam bentuk LIST/ARRAY
+                'deviceUuids':[deviceUuids] #UUID harus dalam bentuk LIST/ARRAY
+                }
+            print("Payload: {}".format(payload))
+            resp = self.__dnac_api_post(api="network-device-poller/cli/read-request", payload = payload )
+            status = resp.status_code
+            print (status)
+            response_json = resp.json()
+            task_url = response_json['response']['url']
+            task = self.__wait_task(task_url)
+            print (task)
+            fileId = json.loads(task['response']['progress'])
+            print(commands)
+            filename, cmd_output = self.__process_file(fileId['fileId'],commands=commands)
+            #self.__send_cmd_slack(filename[0],  channel_id)
+            return filename
+        except ValueError:
+            return f'DNAC might not be accessible currently'
+
+    def __dnac_api_post(self, api='', params='', payload = ''):
+        #url = self.dnac_url + "/api/" + self.dnac_version + "/" + api
+        url = self.dnac_url + "/dna/intent/api/" + self.dnac_version + "/" + api
+        print("API post url: {}".format(url))
+        token = self.__get_token()
+        print(token)
+        headers = {"X-Auth-Token": token, "Accept": "application/json" , "Content-Type": "application/json"}
+        data=json.dumps(payload)
+        try:
+            r = requests.post(url,headers=headers,params=params,data=data ,verify = False)
+            return(r)
+        except:
+            return f'DNAC might not be accessible currently',api
+    
+    def __wait_task(self, task_url):
+        token = self.__get_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "X-auth-Token": token
+            }
+        for i in range(10):
+            time.sleep(1)
+            response_task =  requests.get(self.dnac_url + task_url, headers=headers, verify=False).json()
+            if response_task['response']['isError']:
+                print("Error")
+            if "endTime" in response_task['response']:
+                return response_task
+    
+    def __process_file(self, fileid, commands):
+        file_url = self.dnac_url + f"/api/v1/file/{fileid}"
+        token = self.__get_token()
+        headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-auth-Token": token 
+                }
+        filename = "cmd_output.txt"
+        if os.path.exists(filename):
+            os.remove(filename)
+        with open(filename, "w") as f:
+            response = requests.get(file_url, headers=headers, verify=False ).json()
+            cmd_output= response[0]['commandResponses']['SUCCESS'][commands]
+        return (filename, cmd_output)
+    
+    def __get_token(self):
+        #post_url = "https://"+ip+"/api/system/"+ ver +"/auth/token"
+        post_url = self.dnac_url + "/api/system/" + self.dnac_version + "/auth/token"
+        headers = {'content-type': 'application/json'}
+        try:
+            r = requests.post(post_url, auth=HTTPBasicAuth(username=self.dnac_username, password=self.dnac_password), headers=headers,verify=False)
+            r.raise_for_status()
+            return r.json()["Token"]
+        except requests.exceptions.ConnectionError as e:
+            return ("Error: %s" % e)
+    
 
 '''
 dnac = DNACManager()
