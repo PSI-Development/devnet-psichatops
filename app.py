@@ -6,14 +6,10 @@ from webexteamsbot.models import Response
 import sys
 import json
 from dnac_manager import DNACManager
-'''
-os.environ["TEAMS_BOT_EMAIL"] = "psi-chatops@webex.bot"
-os.environ["TEAMS_BOT_TOKEN"] = "NTA0MDczM2EtMzI0YS00MjgxLWEyNzQtMzNkMDRhMThhNWUxZjNhNzdiMWItZWZj_PF84_8992f87e-6618-4a3c-b512-1b3b50b6f6f3"
-os.environ["TEAMS_BOT_URL"] = "http://222.165.234.92"
-os.environ["TEAMS_BOT_APP_NAME"] = "psi-chatops"
-'''
+from cards_factory import generate_cmd_runner_card
+
 # Initialized managed entitities (e.g. DNAC, APIC, IOS, SolarWind)
-dnac = DNACManager()
+#dnac = DNACManager()
 
 # Retrieve required details from environment variables
 bot_email = os.getenv("TEAMS_BOT_EMAIL")
@@ -49,7 +45,7 @@ bot = TeamsBot(
     # approved_users=approved_users,
     webhook_resource_event=[
         {"resource": "messages", "event": "created"},
-        {"resource": "attachmentActions", "event": "created"},
+        #{"resource": "attachmentActions", "event": "created"},
     ],
 )
 
@@ -90,7 +86,40 @@ def export_inventory(incoming_msg):
     return "Export Inventory - DNAC"
 
 def cmd_run(incoming_msg):
-    return "Command Runner - DNAC"
+    c = create_message_with_attachment(
+        incoming_msg.roomId, msgtxt="Card", attachment=generate_cmd_runner_card()
+    )
+    print(c)
+    return ""
+
+def handle_cards(api, incoming_msg):
+    m = get_attachment_actions(incoming_msg["data"]["id"])
+    print(m)
+    return m["inputs"]
+
+def get_attachment_actions(attachmentid):
+    headers = {
+        'content-type': 'application/json; charset=utf-8',
+        'authorization': 'Bearer ' + teams_token
+    }
+
+    url = 'https://api.ciscospark.com/v1/attachment/actions/' + attachmentid
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+# Temporary function to send a message with a card attachment (not yet
+# supported by webexteamssdk, but there are open PRs to add this
+# functionality)
+def create_message_with_attachment(rid, msgtxt, attachment):
+    headers = {
+        "content-type": "application/json; charset=utf-8",
+        "authorization": "Bearer " + teams_token,
+    }
+
+    url = "https://api.ciscospark.com/v1/messages"
+    data = {"roomId": rid, "attachments": [attachment], "markdown": msgtxt}
+    response = requests.post(url, json=data, headers=headers)
+    return response.json()
 
 # Set the bot greeting.
 bot.set_greeting(greeting)
@@ -101,6 +130,7 @@ bot.add_command("/device-list", "DNAC Device Inventory List", device_list)
 bot.add_command("/device-topology", "DNAC Physical Network Topology", device_topology)
 bot.add_command("/export-inventory", "DNAC export Inventory Report", export_inventory)
 bot.add_command("/cmd-run", "DNAC Command Runner Tools", cmd_run)
+bot.add_command('attachmentActions', '*', handle_cards)
 
 # Every bot includes a default "/echo" command.  You can remove it, or any
 # other command with the remove_command(command) method.
@@ -108,4 +138,4 @@ bot.remove_command("/echo")
 
 if __name__ == "__main__":
     # Run Bot
-    bot.run(host="0.0.0.0", port=5000)
+    bot.run(host="127.0.0.1", port=5000)
