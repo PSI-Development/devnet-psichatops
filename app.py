@@ -6,6 +6,8 @@ from webexteamsbot.models import Response
 import sys
 import json
 from dnac_manager import DNACManager
+from webexteamssdk import WebexTeamsAPI
+
 '''
 os.environ["TEAMS_BOT_EMAIL"] = "psi-chatops@webex.bot"
 os.environ["TEAMS_BOT_TOKEN"] = "NTA0MDczM2EtMzI0YS00MjgxLWEyNzQtMzNkMDRhMThhNWUxZjNhNzdiMWItZWZj_PF84_8992f87e-6618-4a3c-b512-1b3b50b6f6f3"
@@ -83,8 +85,20 @@ def device_list(incoming_msg):
     print(msg)
     return msg
 
+def local_file_upload():
+    ROOM_ID = "Y2lzY29zcGFyazovL3VzL1JPT00vY2M1NDRkMjAtYjI0MC0xMWViLTk0ZDctMTlkZDEzYjU1YzYy"
+    FILE_PATH = dnac.device_topology()
+    api = WebexTeamsAPI(access_token=teams_token)
+    if not os.path.isfile(FILE_PATH):
+        print("ERROR: File {} does not exist.".format(FILE_PATH))
+    abs_path = os.path.abspath(FILE_PATH)
+    file_list = [abs_path]
+    file_upload = api.messages.create(roomId=ROOM_ID, files=file_list)
+    return file_upload
+
 def device_topology(incoming_msg):
-    return "Device Topology - DNAC"
+    file_upload= local_file_upload()
+    return file_upload
 
 def export_inventory(incoming_msg):
     return "Export Inventory - DNAC"
