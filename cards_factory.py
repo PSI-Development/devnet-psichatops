@@ -2,9 +2,9 @@ import json
 
 # static / predefine device and command list
 device_list = ["border-1.packet-systems.web.id", "edge-1.packet-systems.web.id", "fusion-1.packet-systems.web.id"]
-device_uuid_dict = {"border-1.packet-systems.web.id":"26015FFE-E3D2-4E88-B1DD-EBFB8845045C",
-                    "edge-1.packet-systems.web.id":"85DBE66D-2E62-46F3-B5FA-74F36CB64F8E",
-                    "fusion-1.packet-systems.web.id":"E96D2871-F3C8-42EA-A77B-4015F8A2348F"}
+device_uuid_dict = {"border-1.packet-systems.web.id":"26015ffe-e3d2-4e88-b1dd-ebfb8845045c",
+                    "edge-1.packet-systems.web.id":"85dbe66d-2e62-46f3-b5fa-74f36cb64f8e",
+                    "fusion-1.packet-systems.web.id":"e96d2871-f3c8-42ea-a77b-4015f8a2348f"}
 cmd_list = ["show env", "show int desc", "show run"]
 
 # template based on ms card format for selecting device and command

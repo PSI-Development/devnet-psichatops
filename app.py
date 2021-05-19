@@ -100,6 +100,7 @@ def handle_cards(api, incoming_msg):
     selected_device = m['inputs'].get('device_select')
     selected_command = m['inputs'].get('command_select')
     filename = dnac.cmd_run(selected_device, selected_command)
+    print('filename: {}'.format(filename))
     if filename is not None:
         if send_message_with_local_file(rid, filename):
             return f'Please refer result in this attached file'
@@ -138,12 +139,13 @@ def create_message_with_attachment(rid, msgtxt, attachment):
 def send_message_with_local_file(rid, filename, fileformat='text/plain'):
     m = MultipartEncoder({'roomId': rid,
                       'text': 'result attached',
-                      'files': (filename, open('filename', 'rb'),
+                      'files': (filename, open(filename, 'rb'),
                       fileformat)})
 
     r = requests.post('https://webexapis.com/v1/messages', data=m,
-                    headers={'Authorization': 'Bearer' + teams_token,
-                    'Content-Type': m.content_type})
+                    headers={'authorization': 'Bearer ' + teams_token,
+                    'content-type': m.content_type})
+    print('result: {}'.format(r.text))
     if r.ok:
         return True
     else: 

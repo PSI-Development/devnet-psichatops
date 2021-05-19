@@ -14,6 +14,7 @@ from requests.auth import HTTPBasicAuth
 # import sqlite3 as db
 # from xlsxwriter.workbook import Workbook
 from datetime import datetime , timedelta
+import pathlib
 
 
 class DNACManager():
@@ -93,7 +94,7 @@ class DNACManager():
         task_progress= json.loads(task_progress)
         fileid = task_progress['fileId']
         current_directory= pathlib.Path().absolute()
-        filename, cmd_output = self.__processFile(fileid=fileid,commands=commands)
+        filename, cmd_output = self.__process_file(fileid=fileid,commands=command)
         return filename
         #cmd_output = self.dnac.file.download_a_file_by_fileid(fileid,dirpath=current_directory, save_file= True)
 
@@ -140,6 +141,7 @@ class DNACManager():
         with open(filename, "w") as f:
             response = requests.get(file_url, headers=headers, verify=False ).json()
             cmd_output= response[0]['commandResponses']['SUCCESS'][commands]
+            print (cmd_output, file=f)
         return (filename, cmd_output)
     
     def __get_token(self):
