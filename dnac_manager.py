@@ -137,26 +137,22 @@ class DNACManager():
             if device.family == 'Switches and Hubs':
                 devicesuid_list.append(device.id)
         commands=["show int des"]
+        #perlu comment buat menghentikan self testing command runner
         self.cmd_run(device_list=devicesuid_list, commands=commands)
 
     def cmd_run(self,device_list,commands):
         for device in device_list:
-            print("Executing Command on {}".format(device))
             run_cmd = self.dnac.command_runner.run_read_only_commands_on_devices(commands=commands,deviceUuids=[device])
-            print("Task started! Task ID is {}".format(run_cmd.response.taskId))
             task_info = self.dnac.task.get_task_by_id(run_cmd.response.taskId)
             task_progress = task_info.response.progress
-            print("Task Status : {}".format(task_progress))
             while task_progress == 'CLI Runner request creation':
                 task_progress = self.dnac.task.get_task_by_id(run_cmd.response.taskId).response.progress
             task_progress= json.loads(task_progress)
-            print("FileID {} \n".format(task_progress['fileId']))
             fileid = task_progress['fileId']
             current_directory= pathlib.Path().absolute()
             dnac_url= os.environ["DNAC_CONN"]
-            self.processFile(dnac_url=dnac_url, fileid=fileid,commands=commands)
+            cmd_output= self.processFile(dnac_url=dnac_url, fileid=fileid,commands=commands)
             #cmd_output = self.dnac.file.download_a_file_by_fileid(fileid,dirpath=current_directory, save_file= True)
-            #print("Saving config for device {} \n".format(cmd_output))
 
     def processFile(self, dnac_url, fileid, commands):
         file_url = dnac_url + f"/api/v1/file/{fileid}"
@@ -183,7 +179,6 @@ class DNACManager():
                 print (cmd_output, file=f)
         return( filename, cmd_output)
 
-'''
+#perlu comment buat menghentikan self testing command runner
 dnac = DNACManager()
 msg = dnac.device_uuid_list()
-'''
