@@ -107,8 +107,11 @@ def device_topology(incoming_msg):
     file_upload= local_file_upload()
     return file_upload
 
-def export_inventory(incoming_msg):
-    return "Export Inventory - DNAC"
+def action_issue(incoming_msg):
+    msg = dnac.action_issue()
+    print(msg)
+    return msg
+
 
 def cmd_run(incoming_msg):
     c = create_message_with_attachment(
@@ -182,7 +185,7 @@ bot.set_greeting(greeting)
 bot.add_command("/hello-webex", "Say Hello to Webex Teams", hello_webex)
 bot.add_command("/device-list", "DNAC Device Inventory List", device_list)
 bot.add_command("/device-topology", "DNAC Physical Network Topology", device_topology)
-#bot.add_command("/export-inventory", "DNAC export Inventory Report", export_inventory)
+bot.add_command("/action", "DNAC Suggested Action", action_issue)
 bot.add_command("/cmd-run", "DNAC Command Runner Tools", cmd_run)
 bot.add_command('attachmentActions', '*', handle_cards)
 

@@ -45,8 +45,10 @@ class DNACManager():
             device_idx = 1
             for device in device_list['response']:
                     if device is not None:
-                        data = data + str(device_idx) + ". " + "**Name:** "+ device['hostname']+"\n"
-                        data = data + "**platformId:** " + device['platformId'].upper() + "\n\n"
+                        data = data + str(device_idx) + ". " + "**HostName:** "+ device['hostname']+"\n"
+                        data = data + ">**platformId:** " + device['platformId'].upper() + "\n"
+                        data = data + ">**IpAddr:** " + device['managementIpAddress'].upper() + "\n"
+                        data = data + ">**S/N:** " + device['serialNumber'].upper() + "\n"
                         device_idx+=1
             msg = data
             #print(msg)
@@ -63,10 +65,12 @@ class DNACManager():
             node_id = []
             node_name = []
             for node in physical_topo["response"]["nodes"] :
-                node_id.append(node["id"])
-                node_name.append(node["label"])
-                src_node_df = pd.DataFrame({"source" : node_id, "src_node_name" : node_name})
-                target_node_df = pd.DataFrame({"target" : node_id, "target_node_name" : node_name})
+                wlc = ["Wireless Controller"]
+                if not node["family"] in wlc :
+                    node_id.append(node["id"])
+                    node_name.append(node["label"])
+                    src_node_df = pd.DataFrame({"source" : node_id, "src_node_name" : node_name})
+                    target_node_df = pd.DataFrame({"target" : node_id, "target_node_name" : node_name})
             #print(src_node_df)
             #print(target_node_df)
             source = []
@@ -74,11 +78,15 @@ class DNACManager():
             start_port = []
             end_port = []
             for link in physical_topo["response"]["links"] :
-                source.append(link["source"])
-                target.append(link["target"])
-                start_port.append(link["startPortName"])
-                end_port.append(link["endPortName"])
-                link_df = pd.DataFrame({"source" : source, "target" : target , "start_port" : start_port , "end_port" : end_port})
+                id_wlc= ["d6823c59-fe0e-42fb-8183-1cf383d00629"]
+                if not link["source"] in id_wlc :
+                    print(id_wlc)
+                    print(link["source"])
+                    source.append(link["source"])
+                    target.append(link["target"])
+                    start_port.append(link["startPortName"])
+                    end_port.append(link["endPortName"])
+                    link_df = pd.DataFrame({"source" : source, "target" : target , "start_port" : start_port , "end_port" : end_port})
             #print(link_df)
             join_topo_src_df = pd.merge(link_df, src_node_df, how ="left" ,on=["source"] )
             join_topo_src_target_df = pd.merge(join_topo_src_df, target_node_df, how ="left" ,on=["target"] )
@@ -100,6 +108,7 @@ class DNACManager():
             dot = Digraph(comment="DNAC Device Topology:", format='png')
             dot.graph_attr['splines'] = "ortho"
             dot.attr('node', shape="rectangle" ,style="rounded,filled" ,gradientangle="270",fillcolor="#990033:#f5404f", color="#991111",fontcolor="#ffffff", fontname="Arial")
+            #dot.attr('node', image="./switch.png")
             dot.attr('edge', weight='10')
             dot.attr('edge', arrowhead='none')
             dot.body.append(r'label = "\n\nDNAC Device Topology"')
@@ -276,7 +285,44 @@ class DNACManager():
             return r.json()["Token"]
         except requests.exceptions.ConnectionError as e:
             return ("Error: %s" % e)
-   
+    def action_issue(self):
+        try:
+            event_list = self.dnac.event_management.get_notifications(sortBy = "timestamp", order = "desc" , limit = 1)
+            instance_id =[]
+            #print(event_list)
+            for event in event_list :
+                instance_id.append(event["instanceId"])
+            instance = instance_id[0]
+            #print(instance)
+            headers = {
+                        'entity_type': "issue_id",
+                        'entity_value': instance
+                        }
+            issue = self.dnac.custom_caller.call_api('GET','/dna/intent/api/v1/issue-enrichment-details',headers=headers)
+            #print(issue)
+            line_separator = "\n******************************************************************************************\n"
+            #print(device_list)
+            data=  line_separator + "**ACTION** SUGESTED **ACTION**" + line_separator
+            action_idx = 1
+            if issue['errorCode'] is not None :
+                msg = "errorCode : {} \n\n errorDescription :  {} ".format(issue['errorCode'],issue['errorDescription'],) 
+                return (msg)
+            else:   
+                isu1 = issue["issueDetails"]["issue"][0]["suggestedActions"]
+                #print (json.dumps(isu1, indent =4 ))
+                for isu_all in issue["issueDetails"]["issue"]:
+                    for isu_det in isu_all["suggestedActions"]:
+                        #print (isu_det)
+                        #message_action.append(isu_det["message"])
+                        #print(message_action)
+                        data = data + str(action_idx) + ". " + isu_det["message"]+"\n"
+                        action_idx+=1
+                msg = data
+                #print (msg)
+                return(msg)
+        except (ApiError, dnacentersdkException) as e:
+            print(e)
+            return f'DNAC might not be accessible currently'
 
 '''
 dnac = DNACManager()
