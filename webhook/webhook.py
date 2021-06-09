@@ -4,10 +4,7 @@ import urllib3
 requests.packages.urllib3.disable_warnings() 
 import json     
 import sys
-from graphviz import Digraph
 import json
-from pandas import DataFrame
-import pandas as pd
 import os
 from requests.auth import HTTPBasicAuth
 import pathlib
@@ -54,10 +51,7 @@ class WebhookManager():
         return msg
 
     def new_format_event(self,dnac,event):
-
-        line_separator = "\n******************************************************************************************\n"
-        #print(device_list)
-        data=  line_separator + "**ALERT**Notification**ALERT**"+ line_separator 
+        data=  "**ALERT** **Notification** **ALERT**" +"\n"
         data = data + event['details']['Assurance Issue Details']+"\n"
         msg = data
         return msg

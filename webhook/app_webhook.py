@@ -5,7 +5,6 @@ from webexteamsbot.models import Response
 import sys
 import json
 from webexteamssdk import WebexTeamsAPI
-from cards_factory import generate_cmd_runner_card
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from flask import Flask, request
 from webhook import WebhookManager
@@ -45,6 +44,6 @@ def get_all(path):
 
 # Run ChatOps REST Endpoint (Flask HTTP)
 if __name__ == '__main__':
-    flask_app.run(host='0.0.0.0', port=4999, debug=True, ssl_context='adhoc')
-    #flask_app.run(host='0.0.0.0', port=3999, debug=True)
+    #flask_app.run(host='0.0.0.0', port=4999, debug=True, ssl_context='adhoc')
+    flask_app.run(host='0.0.0.0', port=3999, debug=True)
 

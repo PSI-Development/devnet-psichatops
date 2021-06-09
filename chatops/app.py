@@ -102,9 +102,10 @@ def handle_cards(api, incoming_msg):
     rid = m.get('roomId')
     selected_device = m['inputs'].get('device_select')
     selected_command = m['inputs'].get('command_select')
-    filepath = dnac.cmd_run(selected_device, selected_command)
+    filename = dnac.cmd_run(selected_device, selected_command)
+    print (filename)
     if filename is not None:
-        if local_file_upload(rid, filepath):
+        if local_file_upload(rid, filename):
             return f'Please refer result in this attached file'
         else:
             return f'something went wrong while posting result'
@@ -163,4 +164,5 @@ bot.remove_command("/echo")
 
 if __name__ == "__main__":
     # Run Bot
-    bot.run(host="0.0.0.0", port=5000)
+    #bot.run(host="0.0.0.0", port=5000)
+    bot.run(host="0.0.0.0", port=4000)

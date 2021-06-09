@@ -1,0 +1,16 @@
+// DNAC Device Topology:
+digraph {
+	graph [splines=ortho]
+	node [color="#991111" fillcolor="#990033:#f5404f" fontcolor="#ffffff" fontname=Arial gradientangle=270 shape=rectangle style="rounded,filled"]
+	edge [weight=10]
+	edge [arrowhead=none]
+label = "\n\nDNAC Device Topology"
+fontsize=20
+	"AP548A.BAC9.95E4"
+	"border-1.packet-systems.web.id"
+	"edge-1.packet-systems.web.id"
+	"fusion-1.packet-systems.web.id"
+	"AP548A.BAC9.95E4" -> "edge-1.packet-systems.web.id" [label="GigabitEthernet0-GigabitEthernet1/0/8"]
+	"border-1.packet-systems.web.id" -> "fusion-1.packet-systems.web.id" [label="GigabitEthernet1/0/1-GigabitEthernet1/0/1"]
+	"border-1.packet-systems.web.id" -> "edge-1.packet-systems.web.id" [label="GigabitEthernet1/0/2-GigabitEthernet1/0/1"]
+}

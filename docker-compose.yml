@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+
+  chatops:
+    container_name: devnet_chatops
+    restart: always
+    build: ./chatops
+    volumes: ['./chatops:/chatops']
+    networks:
+      - chatopsnetwork
+    expose:
+      - "4000"
+    ports:
+      - "4000:4000"
+    environment:
+      - TEAMS_BOT_EMAIL=psi-chatops@webex.bot
+      - TEAMS_BOT_TOKEN=OTM0M2NjZDMtNGJjMy00YWZmLWFiYzMtZDUzMTFhZmEwNjMwOWFmZjQwNGUtNmIx_PF84_8992f87e-6618-4a3c-b512-1b3b50b6f6f3
+      - TEAMS_BOT_URL=http://222.165.234.92
+      - TEAMS_BOT_APP_NAME=psi-chatops
+      - DNAC_USERNAME=admin
+      - DNAC_PASSWORD=P@ssw0rd
+      - DNAC_CONN=https://10.250.1.10
+      - DNAC_IP=10.250.1.10
+      - DNAC_VER=v1
+
+  webhook:
+    container_name: devnet_webhook
+    restart: always
+    build: ./webhook
+    volumes: ['./webhook:/webhook']
+    networks:
+      - chatopsnetwork
+    expose:
+      - "3999"
+    ports:
+      - "3999:3999"
+    environment:
+      - TEAMS_BOT_EMAIL=psi-chatops@webex.bot
+      - TEAMS_BOT_TOKEN=OTM0M2NjZDMtNGJjMy00YWZmLWFiYzMtZDUzMTFhZmEwNjMwOWFmZjQwNGUtNmIx_PF84_8992f87e-6618-4a3c-b512-1b3b50b6f6f3
+      - TEAMS_BOT_URL=http://222.165.234.92
+      - TEAMS_BOT_APP_NAME=psi-chatops
+      - DNAC_USERNAME=admin
+      - DNAC_PASSWORD=P@ssw0rd
+      - DNAC_CONN=https://10.250.1.10
+      - DNAC_IP=10.250.1.10
+      - DNAC_VER=v1"  
+  nginx:
+    container_name: devnet_nginx
+    restart: always
+    build: ./nginx
+    networks:
+      - chatopsnetwork
+    expose:
+      - "5000"
+      - "4999"
+    ports:
+      - "5000:5000"
+      - "4999:4999"
+
+networks:
+  chatopsnetwork:

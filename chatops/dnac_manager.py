@@ -131,7 +131,7 @@ class DNACManager():
         current_directory= pathlib.Path().absolute()
         current_directory= pathlib.Path().absolute()
         filename, cmd_output = self.__process_file(fileid=fileid,commands=command)
-        filepath = str(current_directory)+"/"+filename+".png"
+        filepath = str(current_directory)+"/"+filename
         return filepath
        
     def __process_file(self, fileid, commands):
