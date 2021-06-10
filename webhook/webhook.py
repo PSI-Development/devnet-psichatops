@@ -40,7 +40,8 @@ class WebhookManager():
     def post_message(self, msg) :
         #slack_data = {'text': message }
         teams_token = os.getenv("TEAMS_BOT_TOKEN")
-        ROOM_ID = "Y2lzY29zcGFyazovL3VzL1JPT00vY2M1NDRkMjAtYjI0MC0xMWViLTk0ZDctMTlkZDEzYjU1YzYy"
+        ROOM_ID = os.getenv("TEAMS_ROOM_ID")
+        #ROOM_ID = "Y2lzY29zcGFyazovL3VzL1JPT00vY2M1NDRkMjAtYjI0MC0xMWViLTk0ZDctMTlkZDEzYjU1YzYy"
         api = WebexTeamsAPI(access_token=teams_token)
         #DEMO_MESSAGE = u"Webex Teams rocks!  \ud83d\ude0e"
         DEMO_MESSAGE = msg

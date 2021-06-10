@@ -44,7 +44,8 @@ services:
       - DNAC_PASSWORD=P@ssw0rd
       - DNAC_CONN=https://10.250.1.10
       - DNAC_IP=10.250.1.10
-      - DNAC_VER=v1"  
+      - DNAC_VER=v1
+      - TEAMS_ROOM_ID=Y2lzY29zcGFyazovL3VzL1JPT00vY2M1NDRkMjAtYjI0MC0xMWViLTk0ZDctMTlkZDEzYjU1YzYy
   nginx:
     container_name: devnet_nginx
     restart: always
