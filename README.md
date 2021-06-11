@@ -14,5 +14,42 @@ An ChatBot API Endpoint and Network Mgmt Engine that organized collection of dat
 Using DNA-Center Rest API, NXOS API, IOS XE, Solarwinds API and ACI-toolkit to subtract information from Cisco Devices
 
 
+# Making the App work
 
+1. Create Bot
+
+Creating a Webex Bot is super easy. If you're logged in, select My Webex Apps from the menu under your avatar at the top of this page, click "Create a New App" then "Create a Bot" to start the wizard.
+https://developer.webex.com/my-apps/new/bot
+
+You'll be asked to provide some basic information about the bot: bot name, bot username, and an icon.
+The bot's access token will only be displayed once.
+![image](https://user-images.githubusercontent.com/40487431/121646716-ca81ca80-cabf-11eb-9029-178108da2b11.png)
+
+
+please take a note and for the following information will be need to get the Pass to work
+      - TEAMS_BOT_EMAIL=bot-username
+      - TEAMS_BOT_TOKEN=bot-access-token
+      - TEAMS_BOT_APP_NAME=bot-display-name
+
+2. Fill environment variable
+
+Open file # docker-compose.yml
+please fill below variable :
+
+    environment:
+      - TEAMS_BOT_EMAIL=bot-username
+      - TEAMS_BOT_TOKEN=bot-access-token
+      - TEAMS_BOT_URL=http://ipaddress for compute app running
+      - TEAMS_BOT_APP_NAME=bot-display-name
+      - DNAC_USERNAME=admin
+      - DNAC_PASSWORD=P@ssw0rd
+      - DNAC_CONN=https://dnacipaddress url
+      - DNAC_IP=10.250.1.10
+      - DNAC_VER=v1
+      - TEAMS_ROOM_ID=room id or channel where the bot is add
+
+3. Set Notification on DNAC
+
+in the Cisco DNA Center GUI, click the Menu icon () and choose Systems > Settings > External > Destinantion. 
+![image](https://user-images.githubusercontent.com/40487431/121649656-fb173380-cac2-11eb-9579-6b9c21bfe4b6.png)
 
